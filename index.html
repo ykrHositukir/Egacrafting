@@ -3,861 +3,229 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="theme-color" content="#10131a" />
-<title>Notch (Markus Persson) — The Creator of a Blocky Universe</title>
+<meta name="theme-color" content="#0d0b12" />
+<title>Notch (Markus Persson) — He is Notch</title>
 <style>
-/* ================= base ================= */
+/* ============ base ============ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-snap-type: y proximity; scroll-behavior: smooth; }
 body {
-  font-family: "Segoe UI", "Helvetica Neue", Arial, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
-  background: #10131a; color: #f5efdc; overflow-x: hidden;
-}
-::selection { background: #5dbb46; color: #10131a; }
-
-#fx { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
-#noise {
-  position: fixed; inset: 0; z-index: 55; pointer-events: none; opacity: .5;
-  background-image: repeating-conic-gradient(rgba(255,255,255,.022) 0% 25%, rgba(0,0,0,.022) 0% 50%);
-  background-size: 6px 6px;
+  background: #0d0b12; overflow-x: hidden;
+  font-family: "Segoe UI", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
 }
 
-/* ================= slide base ================= */
+/* ============ slides ============ */
 .slide {
   position: relative; min-height: 100vh; min-height: 100svh;
   overflow: hidden; display: flex; align-items: center; justify-content: center;
   scroll-snap-align: start;
 }
-.slide::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 16vh; pointer-events: none; }
-.s1 { background: linear-gradient(180deg, #1e1440 0%, #4a2a6e 38%, #b0562e 78%, #a34e22 100%); }
-.s1::after { background: linear-gradient(180deg, rgba(163,78,34,0), #a34e22); }
-.s2 { background: linear-gradient(180deg, #a34e22 0%, #8a5a2f 30%, #5b3a1e 68%, #3b2412 100%); }
-.s2::after { background: linear-gradient(180deg, rgba(59,36,18,0), #3b2412); }
-.s3 { background: linear-gradient(180deg, #3b2412 0%, #2b1c0e 45%, #191008 100%); }
-.s3::after { background: linear-gradient(180deg, rgba(25,16,8,0), #191008); }
-.s4 { background: linear-gradient(180deg, #191008 0%, #2f5d8a 14%, #7cc4ee 40%, #4f9a55 75%, #2f7a3f 100%); }
+.bgwrap { position: absolute; inset: -8% 0; z-index: 0; will-change: transform; }
+.bg {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  opacity: 0; transform: scale(1.07);
+  transition: opacity 1.2s ease .1s;
+}
+.slide.in-view .bg { opacity: 1; animation: kenburns 20s ease-out forwards; }
+
+/* 画像が読み込めるまでの予備背景(実画像が全面を覆います) */
+.s1 { background: linear-gradient(180deg,#1e1440,#4a2a6e 40%,#b0562e); }
+.s2 { background: linear-gradient(180deg,#a34e22,#5b3a1e 60%,#3b2412); }
+.s3 { background: linear-gradient(180deg,#3b2412,#191008); }
+.s4 { background: linear-gradient(180deg,#191008,#2f5d8a 30%,#7cc4ee 55%,#2f7a3f); }
 .s5 { background: #9fc7e8; }
-.s6 { background: linear-gradient(180deg, #10131a 0%, #151322 55%, #0d0b12 100%); }
+.s6 { background: linear-gradient(180deg,#10131a,#0d0b12); }
 
-.content {
-  position: relative; z-index: 2; width: min(1100px, 92vw);
-  text-align: center; padding: 9vh 0;
+/* ============ 境目をなくすグラデーション ============ */
+.slide::after {
+  content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 12vh;
+  z-index: 2; pointer-events: none;
+  background: linear-gradient(0deg, var(--to), transparent);
 }
+.blendtop {
+  position: absolute; top: 0; left: 0; right: 0; height: 12vh; z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--from), transparent);
+}
+.s1 { --to: #b35c22; }
+.s2 { --from: #b35c22; --to: #3b2412; }
+.s3 { --from: #3b2412; --to: #191008; }
+.s4 { --from: #191008; --to: #2f7a3f; }
+.s5 { --from: #2f7a3f; --to: #10131a; }
+.s6 { --from: #10131a; }
 
-/* ================= typography ================= */
-.title {
-  font-size: clamp(30px, 5vw, 58px); font-weight: 900; letter-spacing: 1px;
-  color: #f7f1de; line-height: 1.15;
-  text-shadow: 3px 3px 0 #23211c, -3px 3px 0 #23211c, 3px -3px 0 #23211c, -3px -3px 0 #23211c,
-    0 8px 0 rgba(0,0,0,.28), 0 14px 30px rgba(0,0,0,.35);
+/* ============ CSSだけで降る「材料」 ============ */
+.fxlayer { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.blk {
+  position: absolute; top: 0; left: var(--x);
+  font-size: var(--s); opacity: .85; line-height: 1;
+  animation: fall var(--d) linear var(--dl) infinite;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.25));
+  will-change: transform;
 }
-.title span { display: inline-block; opacity: 0; transform: translateY(-130px) rotate(9deg); }
-.slide.in-view .title span {
-  animation: drop .75s cubic-bezier(.22,1.5,.36,1) forwards;
-  animation-delay: calc(var(--i) * 55ms);
-}
-.subtitle {
-  margin-top: 14px; font-size: clamp(17px, 2.4vw, 26px); font-weight: 700;
-  color: #ffe9c9; letter-spacing: .5px; text-shadow: 2px 2px 0 rgba(0,0,0,.45);
-}
-.s3 .subtitle { color: #f3efd8; }
-.s4 .subtitle { color: #f2f7ff; }
-
-.rv {
-  opacity: 0; transform: translateY(46px) scale(.96);
-  transition: opacity .8s ease, transform .8s cubic-bezier(.2,1.1,.4,1);
-  transition-delay: var(--d, 0s);
-}
-.slide.in-view .rv { opacity: 1; transform: none; }
-
-.swing { transform-origin: 50% -28px; }
-.slide.in-view .swing { animation: sway 4.5s ease-in-out infinite alternate; animation-delay: var(--d, 0s); }
-
-/* ================= slide 1 ================= */
-.s1 .content { display: flex; flex-direction: column; align-items: center; }
-.sunwrap { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none; }
-.sun {
-  margin-top: 12vh; width: 340px; height: 340px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,214,140,.95), rgba(255,150,60,.55) 40%, rgba(255,120,40,0) 70%);
-  filter: blur(2px);
-}
-.vines {
-  position: absolute; inset: 0; pointer-events: none; opacity: .85;
-  border: 18px solid transparent;
-  border-image: repeating-linear-gradient(45deg, #3f8f2f 0 20px, #2f6f24 20px 40px) 18;
-  box-shadow: inset 0 0 80px rgba(0,0,0,.4);
-}
-.cube-stage {
-  position: relative; margin: 4vh 0 5vh; width: 320px; height: 330px;
-  perspective: 900px; display: flex; align-items: center; justify-content: center;
-}
-.beam {
-  position: absolute; bottom: 44px; left: 50%; transform: translateX(-50%);
-  width: 190px; height: 130px;
-  background: radial-gradient(ellipse at 50% 100%, rgba(255,205,130,.5), transparent 70%);
-}
-.pedestal {
-  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 260px; height: 48px;
-  background: linear-gradient(180deg, rgba(255,241,204,.95), rgba(255,190,110,.28));
-  clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%);
-  box-shadow: 0 0 46px 10px rgba(255,190,110,.55);
-}
-.cube-bob { animation: bob 4.5s ease-in-out infinite; }
-.cube { width: 130px; height: 130px; position: relative; transform-style: preserve-3d; animation: spin 16s linear infinite; }
-.cube .f { position: absolute; inset: 0; backface-visibility: hidden; }
-.cube .dirt {
-  background:
-    linear-gradient(180deg, #5dbb46 0 26%, rgba(0,0,0,0) 26%),
-    repeating-conic-gradient(#7a5230 0% 25%, #6b482a 0% 50%) 0 0/14px 14px;
-}
-.cube .side { transform: rotateY(90deg) translateZ(65px); filter: brightness(.82); }
-.cube .front { transform: translateZ(65px); }
-.cube .top {
-  transform: rotateX(90deg) translateZ(65px);
-  background: repeating-conic-gradient(#5dbb46 0% 25%, #4aa338 0% 50%) 0 0/16px 16px;
-}
-.glassbox {
-  margin-top: 1vh; max-width: 720px; padding: 22px 30px; border-radius: 14px;
-  background: rgba(190,210,230,.16);
-  border: 1px solid rgba(255,255,255,.4);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  box-shadow: 0 10px 30px rgba(0,0,0,.25);
-}
-.glassbox p {
-  font-size: clamp(16px, 2vw, 21px); font-weight: 600; margin: 6px 0;
-  text-shadow: 0 2px 8px rgba(0,0,0,.4);
-}
-.scrollhint { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); display: flex; gap: 9px; z-index: 3; }
-.scrollhint span {
-  width: 12px; height: 12px; background: #f5efdc; opacity: .25;
-  box-shadow: 0 0 8px rgba(255,255,255,.6); animation: hint 1.6s ease-in-out infinite;
-}
-.scrollhint span:nth-child(2) { animation-delay: .2s; }
-.scrollhint span:nth-child(3) { animation-delay: .4s; }
-
-/* ================= slide 2 ================= */
-.split { display: flex; gap: 4vw; align-items: center; justify-content: space-between; text-align: left; }
-.s2 .left { flex: 1.2; min-width: 0; text-align: center; }
-.s2 .right { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.desk { position: relative; width: min(380px, 88%); margin: 5vh auto 0; display: flex; flex-direction: column; align-items: center; }
-.crt {
-  width: 100%; background: #181008; border: 12px solid #e6dcbc; border-bottom-width: 26px;
-  border-radius: 16px 16px 6px 6px; padding: 8px; box-shadow: 0 24px 40px rgba(0,0,0,.45);
-}
-.crt-screen {
-  height: 170px; border-radius: 8px;
-  background: radial-gradient(ellipse at 50% 40%, #14200f, #0b120a 75%);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-  box-shadow: inset 0 0 40px rgba(0,0,0,.7);
-}
-.boot { color: #39e75f; font-family: Consolas, "Courier New", monospace; font-weight: 700; font-size: 40px; text-shadow: 0 0 16px rgba(57,231,95,.9); }
-.boot-label { color: #39e75f; font-family: Consolas, monospace; font-size: 15px; letter-spacing: 3px; text-shadow: 0 0 10px rgba(57,231,95,.8); }
-.cursor { width: 12px; height: 18px; background: #39e75f; margin-top: 8px; animation: blink 1s steps(1) infinite; }
-.kb {
-  width: 88%; height: 30px; margin-top: -2px; border-radius: 4px;
-  background: repeating-linear-gradient(90deg, #e8dfc4 0 16px, #cfc3a0 16px 20px);
-  border: 3px solid #b3a685; box-shadow: 0 10px 18px rgba(0,0,0,.4);
-}
-.craftcube {
-  width: 78%; height: 130px; margin-top: -6px;
-  background:
-    repeating-linear-gradient(0deg, #a97b44 0 14px, #8a5f33 14px 16px),
-    repeating-linear-gradient(90deg, rgba(110,74,38,.35) 0 3px, transparent 3px 26px);
-  border: 6px solid #5e3f1f; border-top-color: #c99e63;
-  box-shadow: 0 20px 30px rgba(0,0,0,.4), inset 0 0 30px rgba(0,0,0,.25);
-}
-.sign { width: 100%; max-width: 320px; }
-.chain {
-  display: block; width: 10px; height: 30px; margin: 0 auto -4px; border-radius: 3px;
-  background: repeating-linear-gradient(180deg, #aab2bb 0 7px, #6c747d 7px 14px);
-}
-.sign p {
-  background: linear-gradient(180deg, #b8935a, #9a7748);
-  border: 4px solid #6e4f2a; padding: 16px 18px; color: #2e1c0b;
-  font-weight: 800; font-size: clamp(14px, 1.6vw, 18px); line-height: 1.45; text-align: center;
-  box-shadow: 0 14px 26px rgba(0,0,0,.35), inset 0 0 18px rgba(0,0,0,.12);
+@keyframes fall {
+  0%   { transform: translateY(-12vh) rotate(0deg); }
+  100% { transform: translateY(112vh) rotate(420deg); }
 }
 
-/* ================= slide 3 ================= */
-.cavelight {
-  position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(circle at 50% 55%, rgba(255,150,50,.22), transparent 55%);
+/* ============ スクロールのヒント ============ */
+.hint { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); display: flex; gap: 9px; z-index: 3; }
+.hint span {
+  width: 12px; height: 12px; background: #fff; border-radius: 2px; opacity: .3;
+  box-shadow: 0 0 8px rgba(255,255,255,.6);
+  animation: hint 1.6s ease-in-out infinite;
 }
-.forge { display: flex; align-items: center; justify-content: center; gap: 2vw; margin: 4vh 0 3vh; flex-wrap: wrap; }
-.codepanel {
-  width: 300px; padding: 16px; text-align: left;
-  background: rgba(8,14,8,.75); border: 1px solid rgba(80,255,140,.35);
-  box-shadow: 0 0 24px rgba(60,230,120,.25), inset 0 0 24px rgba(0,0,0,.5);
-}
-.rawcode {
-  color: #5dffa0; font-family: Consolas, monospace; font-weight: 700; letter-spacing: 2px;
-  text-shadow: 0 0 10px rgba(93,255,160,.8); margin-bottom: 8px; transform: skewX(-6deg);
-}
-#codetype {
-  color: #9cf7b8; font-family: Consolas, "Courier New", monospace; font-size: 13px;
-  line-height: 1.5; min-height: 150px; white-space: pre-wrap; text-shadow: 0 0 8px rgba(120,255,170,.5);
-}
-.grid {
-  display: grid; grid-template-columns: repeat(3, 74px); grid-template-rows: repeat(3, 74px);
-  gap: 6px; padding: 10px; border: 3px solid #f6c26b;
-  background: rgba(40,26,12,.6);
-  box-shadow: 0 0 34px rgba(255,170,60,.45), inset 0 0 24px rgba(0,0,0,.5);
-}
-.grid i {
-  background: rgba(255,190,90,.08); border: 2px solid #f6c26b;
-  box-shadow: inset 0 0 12px rgba(255,170,60,.35);
-}
-.arrow {
-  width: 90px; height: 56px;
-  background: linear-gradient(90deg, #ffcf7a, #ff9a3c);
-  clip-path: polygon(0 30%, 55% 30%, 55% 0, 100% 50%, 55% 100%, 55% 70%, 0 70%);
-  filter: drop-shadow(0 0 14px rgba(255,160,60,.8));
-}
-.gem { width: 130px; height: 130px; display: flex; align-items: center; justify-content: center; }
-.dia {
-  width: 110px; height: 110px;
-  clip-path: polygon(50% 0, 92% 30%, 100% 55%, 72% 100%, 28% 100%, 0 55%, 8% 30%);
-  background: linear-gradient(180deg, #cdf3fb, #59d7e8 45%, #2ba3c9);
-  animation: gemPulse 2.4s ease-in-out infinite;
-}
-.neons { display: flex; gap: 3vw; justify-content: center; flex-wrap: wrap; }
-.neon { width: min(280px, 84vw); }
-.neon .chain { height: 26px; background: repeating-linear-gradient(180deg, #4a4f58 0 6px, #2b2f36 6px 12px); }
-.neon p {
-  background: rgba(10,10,20,.82); border: 3px solid var(--nc, #b26bff); color: #efeaff;
-  padding: 16px; font-weight: 700; font-size: clamp(13px, 1.5vw, 17px); line-height: 1.5; text-align: center;
-  box-shadow: 0 0 18px var(--nc, #b26bff), inset 0 0 14px rgba(255,255,255,.06);
-  text-shadow: 0 0 10px rgba(200,180,255,.8);
-}
-.neon:nth-child(1) { --nc: #a55bff; }
-.neon:nth-child(2) { --nc: #7f7bff; }
-.neon:nth-child(3) { --nc: #3fd6ff; }
+.hint span:nth-child(2) { animation-delay: .2s; }
+.hint span:nth-child(3) { animation-delay: .4s; }
 
-/* ================= slide 4 ================= */
-.goldframe {
-  position: absolute; inset: 0; pointer-events: none; z-index: 1;
-  border: 14px solid transparent;
-  border-image: repeating-linear-gradient(45deg, #f6c945 0 18px, #2f6fd8 18px 36px) 14;
-}
-.s4 .content { width: min(1200px, 94vw); }
-.split4 { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 2vw; align-items: stretch; text-align: left; }
-.scenery { position: relative; overflow: hidden; min-height: 52vh; border: 6px solid rgba(20,30,20,.35); }
-.scenery.left { background: linear-gradient(180deg, #8fd0f2 0%, #bfe4f7 55%, #6fa3d8 55.2%, #3f7fc9 78%, #2f5f9e 100%); }
-.scenery.left::after {
-  content: ""; position: absolute; left: 0; right: 0; top: 55%; height: 10px;
-  background: repeating-linear-gradient(90deg, #3f8f2f 0 18px, #5dbb46 18px 36px);
-}
-.sun2 {
-  position: absolute; top: 9%; left: 18%; width: 70px; height: 70px; border-radius: 50%;
-  background: #fff6d8; box-shadow: 0 0 40px rgba(255,246,216,.9);
-}
-.cloudlayer { position: absolute; inset: 0; }
-.cloud {
-  position: absolute; display: block; top: 14%; left: 0; width: 120px; height: 34px;
-  background: #fff; border-radius: 40px; opacity: .92;
-  box-shadow: 40px -14px 0 -6px #fff, -34px -8px 0 -10px #fff, 80px 4px 0 -12px #fff;
-  animation: drift 26s linear infinite;
-}
-.cloud.c2 { top: 26%; animation-duration: 34s; animation-delay: -12s; }
-.scenery.right { background: linear-gradient(180deg, #14361f, #1f5c2f 45%, #2f7a3f); }
-.scenery.right::before {
-  content: ""; position: absolute; inset: 0; mix-blend-mode: screen;
-  background: repeating-linear-gradient(105deg, rgba(255,255,230,.22) 0 8px, rgba(255,255,230,0) 8px 38px);
-}
-.scenery.right::after {
-  content: ""; position: absolute; inset: 0;
-  background: radial-gradient(circle at 60% 30%, rgba(255,255,200,.35), transparent 55%);
-}
-.centercol { display: flex; flex-direction: column; gap: 16px; align-items: center; text-align: center; }
-.s4 .title { font-size: clamp(26px, 3.6vw, 46px); }
-.bluepanel {
-  position: relative; width: 100%; max-width: 430px; padding: 18px 22px;
-  background: linear-gradient(180deg, rgba(10,22,44,.92), rgba(6,14,30,.92));
-  border: 3px solid #3d8bff;
-  box-shadow: 0 0 0 3px rgba(10,16,28,.9), 0 0 22px rgba(61,139,255,.45), 0 14px 26px rgba(0,0,0,.35);
-}
-.bluepanel p { color: #f2f7ff; font-weight: 700; font-size: clamp(15px, 1.8vw, 20px); line-height: 1.5; }
-.bluepanel::before, .bluepanel::after { content: ""; position: absolute; width: 14px; height: 14px; border: 3px solid #f2c94c; }
-.bluepanel::before { top: -3px; left: -3px; border-right: none; border-bottom: none; }
-.bluepanel::after { bottom: -3px; right: -3px; border-left: none; border-top: none; }
-.gold { color: #f2c94c; font-style: normal; text-shadow: 0 0 12px rgba(242,201,76,.6); }
+@keyframes hint { 0%,100% { transform: translateY(-6px); opacity: .15; } 50% { transform: translateY(4px); opacity: .9; } }
+@keyframes kenburns { from { transform: scale(1.07); } to { transform: scale(1); } }
 
-/* ================= slide 5 ================= */
-.s5-bg {
-  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0;
-  animation: kenburns 26s ease-in-out infinite alternate;
-}
-.s5.noimg { background: linear-gradient(180deg, #8fc8ec 0%, #bfe0f2 55%, #4f9a55 55.2%, #2f7a3f 100%); }
-.blendtop { position: absolute; top: 0; left: 0; right: 0; height: 14vh; z-index: 2; pointer-events: none;
-  background: linear-gradient(180deg, #2f7a3f, rgba(47,122,63,0)); }
-.blendbot { position: absolute; bottom: 0; left: 0; right: 0; height: 14vh; z-index: 2; pointer-events: none;
-  background: linear-gradient(0deg, #10131a, rgba(16,19,26,0)); }
-.shine {
-  position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,.14) 47%, rgba(255,255,255,.05) 50%, transparent 58%);
-  background-size: 240% 100%; animation: sheen 7s ease-in-out infinite;
-}
-
-/* ================= slide 6 ================= */
-.beamwrap { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.beam6 {
-  position: absolute; display: block; top: -20%; width: 120px; height: 140%;
-  background: linear-gradient(180deg, rgba(160,200,255,.12), rgba(160,200,255,.03));
-  transform: skewX(-14deg);
-}
-.beam6.b1 { left: 18%; }
-.beam6.b2 { left: 62%; }
-.s6 .content { display: flex; flex-direction: column; align-items: center; gap: 3vh; }
-.smalltitle {
-  font-size: clamp(20px, 3vw, 34px); font-weight: 900; color: #f7f1de; letter-spacing: 1px;
-  text-shadow: 2px 2px 0 #1c1a16, -2px 2px 0 #1c1a16, 2px -2px 0 #1c1a16, -2px -2px 0 #1c1a16, 0 6px 14px rgba(0,0,0,.5);
-}
-.smalltitle span { display: inline-block; opacity: 0; transform: translateY(-80px); }
-.slide.in-view .smalltitle span {
-  animation: dropSm .6s cubic-bezier(.22,1.5,.36,1) forwards;
-  animation-delay: calc(var(--i) * 40ms);
-}
-.bigtitle {
-  font-size: clamp(44px, 9vw, 110px); font-weight: 900; letter-spacing: 3px;
-  color: #ffffff; line-height: 1.05; text-align: center;
-  text-shadow: 4px 4px 0 #0c0c0c, -4px 4px 0 #0c0c0c, 4px -4px 0 #0c0c0c, -4px -4px 0 #0c0c0c,
-    0 10px 0 rgba(0,0,0,.4), 0 0 40px rgba(120,220,255,.25);
-}
-.bigtitle span { display: inline-block; opacity: 0; transform: translateY(-160px) scale(1.2); }
-.slide.in-view .bigtitle span {
-  animation: slam .7s cubic-bezier(.2,1.3,.3,1) forwards;
-  animation-delay: calc(.35s + var(--i) * 70ms);
-}
-.slide.quake { animation: quake .45s ease; }
-
-/* ================= keyframes ================= */
-@keyframes drop {
-  0% { opacity: 0; transform: translateY(-130px) rotate(9deg); }
-  55% { opacity: 1; transform: translateY(8px) rotate(-2deg); }
-  75% { transform: translateY(-5px) rotate(1deg); }
-  100% { opacity: 1; transform: translateY(0) rotate(0); }
-}
-@keyframes dropSm {
-  0% { opacity: 0; transform: translateY(-80px); }
-  100% { opacity: 1; transform: none; }
-}
-@keyframes slam {
-  0% { opacity: 0; transform: translateY(-160px) scale(1.2); }
-  60% { opacity: 1; transform: translateY(10px) scale(.95); }
-  80% { transform: translateY(-6px) scale(1.02); }
-  100% { opacity: 1; transform: none; }
-}
-@keyframes bob { 0%, 100% { transform: translateY(-10px); } 50% { transform: translateY(10px); } }
-@keyframes spin { from { transform: rotateX(-24deg) rotateY(0deg); } to { transform: rotateX(-24deg) rotateY(360deg); } }
-@keyframes blink { 50% { opacity: 0; } }
-@keyframes hint { 0%, 100% { transform: translateY(-6px); opacity: .15; } 50% { transform: translateY(4px); opacity: .9; } }
-@keyframes sway { from { transform: rotate(-1.6deg); } to { transform: rotate(1.8deg); } }
-@keyframes gemPulse {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 18px rgba(89,215,232,.7)); }
-  50% { transform: scale(1.08); filter: drop-shadow(0 0 34px rgba(89,215,232,1)); }
-}
-@keyframes drift { from { transform: translateX(-140px); } to { transform: translateX(660px); } }
-@keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.07); } }
-@keyframes sheen { 0%, 100% { background-position: 120% 0; } 50% { background-position: -60% 0; } }
-@keyframes quake {
-  10% { transform: translate(-6px, 2px); }
-  30% { transform: translate(5px, -3px); }
-  50% { transform: translate(-4px, 3px); }
-  70% { transform: translate(3px, -2px); }
-  90% { transform: translate(-2px, 1px); }
-}
-
-/* ================= responsive ================= */
-@media (max-width: 900px) {
-  .split { flex-direction: column; gap: 3vh; }
-  .split4 { grid-template-columns: 1fr; }
-  .scenery { min-height: 26vh; }
-  .forge { gap: 3vh; }
-  .cube-stage { transform: scale(.8); margin: 1vh 0 2vh; height: 280px; }
-  .desk { margin-top: 2vh; }
-  .s2 .left { text-align: center; }
-}
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .cube, .cloud, .shine, .s5-bg, .swing, .scrollhint span, .dia, .cursor { animation: none !important; }
-  .title span, .bigtitle span, .smalltitle span { opacity: 1; transform: none; animation: none !important; }
-  .rv { opacity: 1; transform: none; transition: none; }
+  .blk, .hint span { display: none; }
+  .bg { animation: none !important; transition: none; opacity: 1; transform: none; }
 }
 </style>
 </head>
 <body>
 
-<canvas id="fx"></canvas>
-<div id="noise"></div>
+<!-- ============ SLIDE 1 : He is Notch ============ -->
+<section class="slide s1">
+  <div class="bgwrap" data-depth=".14">
+    <img class="bg"
+         src="https://z-cdn-media.chatglm.cn/files/1e9773a3-9363-41c7-abd0-9fad326a4a5e.png?auth_key=1895492367-3199cab535a24805b9033aa896bf4220-0-fe40779bda9edbf1924cafe8aba9e78b"
+         alt="Notch (Markus Persson) — He is Notch"
+         referrerpolicy="no-referrer" />
+  </div>
+  <div class="fxlayer" aria-hidden="true">
+    <i class="blk" style="--x:8%;  --d:9s;  --dl:-1s; --s:26px">🟩</i>
+    <i class="blk" style="--x:22%; --d:11s; --dl:-4s; --s:20px">🍃</i>
+    <i class="blk" style="--x:37%; --d:8s;  --dl:-6s; --s:30px">🟩</i>
+    <i class="blk" style="--x:52%; --d:12s; --dl:-2s; --s:18px">🍃</i>
+    <i class="blk" style="--x:66%; --d:9s;  --dl:-7s; --s:26px">🟩</i>
+    <i class="blk" style="--x:80%; --d:10s; --dl:-3s; --s:22px">🍃</i>
+    <i class="blk" style="--x:91%; --d:8s;  --dl:-9s; --s:24px">🍃</i>
+  </div>
+  <div class="hint"><span></span><span></span><span></span></div>
+</section>
 
-<main>
+<!-- ============ SLIDE 2 : Notch's Story ============ -->
+<section class="slide s2">
+  <div class="blendtop"></div>
+  <div class="bgwrap" data-depth=".1">
+    <img class="bg"
+         src="https://z-cdn-media.chatglm.cn/files/0f86b4d6-6c17-4828-86db-a0aded7342fa.png?auth_key=1895492367-627c6e1da83c4fa4be5ee3779c98f6ee-0-2a109eaaf6bbc1c0ecdc485ea3d50e36"
+         alt="Notch's Story — A Boy, A Computer, and A Dream"
+         referrerpolicy="no-referrer" />
+  </div>
+  <div class="fxlayer" aria-hidden="true">
+    <i class="blk" style="--x:10%; --d:10s; --dl:-2s; --s:26px">🪵</i>
+    <i class="blk" style="--x:30%; --d:12s; --dl:-5s; --s:20px">🟫</i>
+    <i class="blk" style="--x:50%; --d:9s;  --dl:-8s; --s:28px">🪵</i>
+    <i class="blk" style="--x:70%; --d:11s; --dl:-3s; --s:20px">🟫</i>
+    <i class="blk" style="--x:88%; --d:10s; --dl:-6s; --s:24px">🪵</i>
+  </div>
+</section>
 
-  <!-- ===== Slide 1 ===== -->
-  <section class="slide s1" data-theme="grass">
-    <div class="sunwrap" data-depth=".15"><div class="sun"></div></div>
-    <div class="vines"></div>
-    <div class="content">
-      <h1 class="title" data-split>Notch (Markus Persson)</h1>
-      <p class="subtitle rv" style="--d:.45s">The Creator of a Blocky Universe</p>
-      <div class="cube-stage rv" style="--d:.65s">
-        <div class="beam"></div>
-        <div class="pedestal"></div>
-        <div class="cube-bob">
-          <div class="cube">
-            <i class="f front dirt"></i>
-            <i class="f side dirt"></i>
-            <i class="f top"></i>
-          </div>
-        </div>
-      </div>
-      <div class="glassbox rv" style="--d:1s">
-        <p>Who built the best-selling video game in history?</p>
-        <p>Born in Stockholm, Sweden (1979).</p>
-        <p>Known to millions of gamers simply as Notch.</p>
-      </div>
-    </div>
-    <div class="scrollhint rv" style="--d:1.5s"><span></span><span></span><span></span></div>
-  </section>
+<!-- ============ SLIDE 3 : Starts creating Minecraft (2009) ============ -->
+<section class="slide s3">
+  <div class="blendtop"></div>
+  <div class="bgwrap" data-depth=".12">
+    <img class="bg"
+         src="https://z-cdn-media.chatglm.cn/files/05414ff3-5623-4a92-90d3-417afe7e7070.png?auth_key=1895492367-96f35e304d864121be4d83012f3af731-0-0e2b95aadd8ac48568bfbfd2a7d1ecd3"
+         alt="Notch — Starts creating Minecraft (2009)"
+         referrerpolicy="no-referrer" />
+  </div>
+  <div class="fxlayer" aria-hidden="true">
+    <i class="blk" style="--x:12%; --d:9s;  --dl:-1s; --s:28px">💎</i>
+    <i class="blk" style="--x:34%; --d:11s; --dl:-4s; --s:20px">🟩</i>
+    <i class="blk" style="--x:55%; --d:8s;  --dl:-7s; --s:30px">💎</i>
+    <i class="blk" style="--x:74%; --d:12s; --dl:-2s; --s:20px">🟩</i>
+    <i class="blk" style="--x:90%; --d:9s;  --dl:-9s; --s:26px">💎</i>
+  </div>
+</section>
 
-  <!-- ===== Slide 2 ===== -->
-  <section class="slide s2" data-theme="wood">
-    <div class="content split">
-      <div class="left">
-        <h2 class="title" data-split>Notch (Markus Persson)</h2>
-        <p class="subtitle rv" style="--d:.4s">A Boy, A Computer, and A Dream</p>
-        <div class="desk rv" style="--d:.6s">
-          <div class="crt">
-            <div class="crt-screen">
-              <span class="boot">C≡</span>
-              <span class="boot-label">COMMODORE 128</span>
-              <i class="cursor"></i>
-            </div>
-          </div>
-          <div class="kb"></div>
-          <div class="craftcube"></div>
-        </div>
-      </div>
-      <div class="right">
-        <div class="sign rv" style="--d:.3s">
-          <div class="swing"><i class="chain"></i>
-            <p>Started programming at age 7 on a Commodore 128.</p>
-          </div>
-        </div>
-        <div class="sign rv" style="--d:.6s">
-          <div class="swing"><i class="chain"></i>
-            <p>Created his first game at age 8.</p>
-          </div>
-        </div>
-        <div class="sign rv" style="--d:.9s">
-          <div class="swing"><i class="chain"></i>
-            <p>Video games became his passion and creative escape.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+<!-- ============ SLIDE 4 : Changing the World of Gaming ============ -->
+<section class="slide s4">
+  <div class="blendtop"></div>
+  <div class="bgwrap" data-depth=".1">
+    <img class="bg"
+         src="https://z-cdn-media.chatglm.cn/files/d0071abe-ae52-4ac9-bd22-31a4ae41c655.png?auth_key=1895492367-2861a51b42a644a4a93a3d6b9d6d97eb-0-81532736022e1c77464b13d634e9c4be"
+         alt="Notch — Changing the World of Gaming"
+         referrerpolicy="no-referrer" />
+  </div>
+  <div class="fxlayer" aria-hidden="true">
+    <i class="blk" style="--x:9%;  --d:10s; --dl:-2s; --s:28px">🟨</i>
+    <i class="blk" style="--x:26%; --d:12s; --dl:-5s; --s:20px">💎</i>
+    <i class="blk" style="--x:44%; --d:9s;  --dl:-8s; --s:30px">🟨</i>
+    <i class="blk" style="--x:62%; --d:11s; --dl:-3s; --s:20px">💎</i>
+    <i class="blk" style="--x:79%; --d:10s; --dl:-6s; --s:26px">🟨</i>
+    <i class="blk" style="--x:92%; --d:9s;  --dl:-9s; --s:22px">💎</i>
+  </div>
+</section>
 
-  <!-- ===== Slide 3 ===== -->
-  <section class="slide s3" data-theme="diamond">
-    <div class="cavelight" data-depth=".1"></div>
-    <div class="content">
-      <h2 class="title" data-split>Notch (Markus Persson)</h2>
-      <p class="subtitle rv" style="--d:.4s">Forging Minecraft (2009)</p>
-      <div class="forge">
-        <div class="codepanel rv" style="--d:.5s">
-          <div class="rawcode">RAW CODE</div>
-          <pre id="codetype"></pre>
-        </div>
-        <div class="grid rv" style="--d:.7s"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <div class="arrow rv" style="--d:.9s"></div>
-        <div class="gem rv" style="--d:1.1s"><span class="dia"></span></div>
-      </div>
-      <div class="neons">
-        <div class="neon rv" style="--d:.6s">
-          <div class="swing"><i class="chain"></i>
-            <p>Inspired by open-ended mining and building games.</p>
-          </div>
-        </div>
-        <div class="neon rv" style="--d:.8s">
-          <div class="swing"><i class="chain"></i>
-            <p>Released the first Alpha version in 2009.</p>
-          </div>
-        </div>
-        <div class="neon rv" style="--d:1s">
-          <div class="swing"><i class="chain"></i>
-            <p>A simple rule: Survive, mine, and build anything you can imagine.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== Slide 4 ===== -->
-  <section class="slide s4" data-theme="gold">
-    <div class="goldframe"></div>
-    <div class="content split4">
-      <div class="scenery left rv" style="--d:.3s">
-        <div class="sun2"></div>
-        <div class="cloudlayer" data-depth=".12"><i class="cloud"></i><i class="cloud c2"></i></div>
-      </div>
-      <div class="centercol">
-        <h2 class="title" data-split>Notch (Markus Persson)</h2>
-        <p class="subtitle rv" style="--d:.4s">Changing the World of Gaming</p>
-        <div class="bluepanel rv" style="--d:.6s">
-          <p>Over <em class="gold"><span class="count" data-target="300">0</span> million</em> copies sold worldwide.</p>
-        </div>
-        <div class="bluepanel rv" style="--d:.8s">
-          <p>Built a massive, <em class="gold">creative global</em> community.</p>
-        </div>
-        <div class="bluepanel rv" style="--d:1s">
-          <p>Sold Mojang to Microsoft for <em class="gold"><span class="count" data-target="2.5" data-prefix="$" data-decimals="1">$0.0</span> billion</em> in 2014.</p>
-        </div>
-      </div>
-      <div class="scenery right rv" style="--d:.3s"></div>
-    </div>
-  </section>
-
-  <!-- ===== Slide 5 (provided image) ===== -->
-  <section class="slide s5" id="slide5" data-theme="glass">
-    <img class="s5-bg"
+<!-- ============ SLIDE 5 : I am a programmer, not a CEO. ============ -->
+<section class="slide s5">
+  <div class="blendtop"></div>
+  <div class="bgwrap" data-depth=".08">
+    <img class="bg"
          src="https://z-cdn-media.chatglm.cn/files/f7d629e5-4e92-472d-84ee-7a8cf558c691.png?auth_key=1895481106-23423c28bcdf42319101263d03d65aec-0-4f6be6a320fcc70577a1711602381b7f"
          alt="Notch (Markus Persson) — I am a programmer, not a CEO."
          referrerpolicy="no-referrer" />
-    <div class="blendtop"></div>
-    <div class="blendbot"></div>
-    <div class="shine"></div>
-  </section>
+  </div>
+  <div class="fxlayer" aria-hidden="true">
+    <i class="blk" style="--x:15%; --d:13s; --dl:-2s; --s:20px">🍃</i>
+    <i class="blk" style="--x:45%; --d:15s; --dl:-7s; --s:18px">🍃</i>
+    <i class="blk" style="--x:72%; --d:12s; --dl:-4s; --s:20px">🍃</i>
+    <i class="blk" style="--x:88%; --d:14s; --dl:-9s; --s:18px">🍃</i>
+  </div>
+</section>
 
-  <!-- ===== Slide 6 ===== -->
-  <section class="slide s6" data-theme="tnt">
-    <div class="beamwrap" data-depth=".08"><i class="beam6 b1"></i><i class="beam6 b2"></i></div>
-    <div class="content">
-      <p class="smalltitle" data-split>Notch (Markus Persson)</p>
-      <h2 class="bigtitle" data-split>NEVER STOP CRAFTING</h2>
-    </div>
-  </section>
-
-</main>
+<!-- ============ SLIDE 6 : NEVER STOP CRAFTING ============ -->
+<section class="slide s6">
+  <div class="blendtop"></div>
+  <div class="bgwrap" data-depth=".1">
+    <img class="bg"
+         src="https://z-cdn-media.chatglm.cn/files/14380253-021b-4631-a6ec-bfc64daa7c49.png?auth_key=1895492367-d07aa3e1d97f4f8fb9cb93c3d1de1ae4-0-3708504fb9208f1425ccfc57b2683a46"
+         alt="NEVER STOP CRAFTING"
+         referrerpolicy="no-referrer" />
+  </div>
+  <div class="fxlayer" aria-hidden="true">
+    <i class="blk" style="--x:8%;  --d:9s;  --dl:-1s; --s:28px">🧨</i>
+    <i class="blk" style="--x:25%; --d:11s; --dl:-5s; --s:22px">💎</i>
+    <i class="blk" style="--x:47%; --d:8s;  --dl:-7s; --s:30px">🧨</i>
+    <i class="blk" style="--x:66%; --d:12s; --dl:-2s; --s:22px">💎</i>
+    <i class="blk" style="--x:84%; --d:10s; --dl:-8s; --s:28px">🧨</i>
+    <i class="blk" style="--x:93%; --d:11s; --dl:-4s; --s:20px">💎</i>
+  </div>
+</section>
 
 <script>
 (() => {
-  "use strict";
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---------- split titles into block letters ---------- */
-  document.querySelectorAll("[data-split]").forEach(el => {
-    const chars = Array.from(el.textContent);
-    el.textContent = "";
-    chars.forEach((ch, i) => {
-      const s = document.createElement("span");
-      s.style.setProperty("--i", i);
-      s.textContent = ch === " " ? "\u00A0" : ch;
-      el.appendChild(s);
-    });
-  });
+  /* スクロールでスライドが見えたらCSSアニメーションを発火 */
+  const io = new IntersectionObserver(
+    es => es.forEach(e => e.target.classList.toggle("in-view", e.isIntersecting)),
+    { threshold: .35 }
+  );
+  document.querySelectorAll(".slide").forEach(s => io.observe(s));
 
-  /* ---------- canvas particle engine ---------- */
-  const cv = document.getElementById("fx");
-  const ctx = cv.getContext("2d");
-  let W = 0, H = 0;
-  function resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth; H = window.innerHeight;
-    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.imageSmoothingEnabled = false;
-  }
-  window.addEventListener("resize", resize);
-  resize();
-
-  const SPRITES = {
-    grass: { colors: { G: "#5dbb46", g: "#4aa338", d: "#7a5230", D: "#5b3a1e" }, map: [
-      "gGGgGGgG", "GGgGGgGG", "gGGgGgGG", "dgdDdgdD",
-      "DdDdDDdD", "dDddDdDd", "DdDDdDdD", "dDdDddDd" ] },
-    wood: { colors: { O: "#a97b44", o: "#8a5f33", n: "#6e4a26" }, map: [
-      "OoOoOoOo", "OoOoOoOo", "nnnnnnnn", "oOoOoOoO",
-      "oOoOoOoO", "nnnnnnnn", "OoOoOoOo", "OoOoOoOo" ] },
-    gold: { colors: { Y: "#f6c945", y: "#dca62e", k: "#a87c1c" }, map: [
-      "kkkkkkkk", "kYyYkYyY", "yYkYyYkY", "kYyYkYyY",
-      "yYkYyYkY", "kYyYkYyY", "yYkYyYkY", "kkkkkkkk" ] },
-    tnt: { colors: { R: "#c33b2c", r: "#8f2a20", W: "#e8e2d8", T: "#2f2f2f", N: "#2f2f2f" }, map: [
-      "rRrRrRrR", "RrRrRrRr", "WWWWWWWW", "TNTWTNTW",
-      "WTNTWTNT", "rRrRrRrR", "RrRrRrRr", "rRrRrRrR" ] },
-    diamond: { colors: { C: "#59d7e8", c: "#a8ecf5", B: "#2ba3c9" }, map: [
-      "..ccC...", ".cCCCCc.", "cCCCCCCc", "BCCCCCCc",
-      ".BCCCCB.", "..BCCB..", "...BB...", "........" ] },
-    emerald: { colors: { M: "#1f9e4d", m: "#3ecf6e" }, map: [
-      "..mmM...", ".mMMMm..", "mMMMMMm.", "mMMMMMm.",
-      ".mMMMm..", "..mMm...", "...m....", "........" ] },
-    leaf: { colors: { L: "#5dbb46", l: "#3f8f2f", e: "#2f6f24" }, map: [
-      "..lLLl..", ".lLLLLl.", "lLLlLLlL", "lLLLLLlL",
-      ".lLLlLl.", "e..ll..e", "..e..e..", "........" ] },
-    glass: { colors: { s: "rgba(210,235,245,.75)", S: "rgba(255,255,255,.9)" }, map: [
-      "ssssssss", "sSSSSSSs", "sSssssSs", "sSssssSs",
-      "sSssssSs", "sSssssSs", "sSSSSSSs", "ssssssss" ] }
-  };
-  const IMG = {};
-  Object.keys(SPRITES).forEach(k => {
-    const def = SPRITES[k], rows = def.map, cols = rows[0].length, cell = 4;
-    const c = document.createElement("canvas");
-    c.width = cols * cell; c.height = rows.length * cell;
-    const g = c.getContext("2d");
-    rows.forEach((row, y) => {
-      Array.from(row).forEach((ch, x) => {
-        const col = def.colors[ch];
-        if (col) { g.fillStyle = col; g.fillRect(x * cell, y * cell, cell, cell); }
-      });
-    });
-    IMG[k] = c;
-  });
-
-  const GLYPHS = "01{};#()<>*+";
-  const THEMES = {
-    grass:   { pool: [["grass", 4], ["leaf", 3], ["wood", 1]], rate: 5 },
-    wood:    { pool: [["wood", 4], ["grass", 2]], rate: 5 },
-    diamond: { pool: [["diamond", 3], ["code", 4]], rate: 7 },
-    gold:    { pool: [["gold", 4], ["emerald", 2]], rate: 7 },
-    glass:   { pool: [["leaf", 3], ["glass", 2]], rate: 3 },
-    tnt:     { pool: [["tnt", 2], ["diamond", 2], ["code", 1]], rate: 7 }
-  };
-  let theme = THEMES.grass;
-
-  function pick(arr) {
-    let t = 0;
-    for (const [, w] of arr) t += w;
-    let r = Math.random() * t;
-    for (const [k, w] of arr) { r -= w; if (r <= 0) return k; }
-    return arr[0][0];
-  }
-
-  const parts = [], flashes = [];
-  const MAXP = reduced ? 40 : 150;
-
-  function spawnOne(opt) {
-    opt = opt || {};
-    if (parts.length >= MAXP) return;
-    const kind = opt.kind || pick(theme.pool);
-    const p = {
-      kind: kind,
-      size: opt.size || (kind === "tnt" ? 26 + Math.random() * 16 : 18 + Math.random() * 22),
-      x: opt.x !== undefined ? opt.x : Math.random() * W,
-      y: opt.y !== undefined ? opt.y : -50 - Math.random() * 80,
-      vx: opt.vx !== undefined ? opt.vx : (Math.random() - .5) * 30,
-      vy: opt.vy !== undefined ? opt.vy : 30 + Math.random() * 60,
-      rot: Math.random() * Math.PI * 2,
-      vr: (Math.random() - .5) * 1.6,
-      sway: .6 + Math.random() * 1.2,
-      phase: Math.random() * Math.PI * 2,
-      alpha: kind === "glass" ? .8 : .92,
-      spark: false, life: 1
-    };
-    if (kind === "code") p.glyph = GLYPHS[(Math.random() * GLYPHS.length) | 0];
-    parts.push(p);
-  }
-
-  function burst(themeKey, n, origin) {
-    const t = THEMES[themeKey] || theme;
-    for (let i = 0; i < n; i++) {
-      spawnOne({
-        kind: pick(t.pool),
-        x: origin ? origin.x + (Math.random() - .5) * 90 : Math.random() * W,
-        y: origin ? origin.y + (Math.random() - .5) * 90 : -40 - Math.random() * 140,
-        vx: origin ? (Math.random() - .5) * 320 : (Math.random() - .5) * 40,
-        vy: origin ? -120 - Math.random() * 220 : 40 + Math.random() * 120,
-        size: 16 + Math.random() * 20
-      });
-    }
-  }
-
-  function explode(x, y) {
-    flashes.push({ x: x, y: y, r: 8, max: 90 + Math.random() * 50, a: 1 });
-    for (let i = 0; i < 14; i++) {
-      const ang = Math.random() * Math.PI * 2, sp = 80 + Math.random() * 260;
-      parts.push({
-        kind: "spark", size: 4 + Math.random() * 5, x: x, y: y,
-        vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 60,
-        rot: 0, vr: 0, sway: 0, phase: 0, alpha: 1,
-        life: .8 + Math.random() * .4, spark: true
-      });
-    }
-  }
-
-  let boost = 0, lastY = window.scrollY;
-  window.addEventListener("scroll", () => {
-    const d = Math.abs(window.scrollY - lastY);
-    lastY = window.scrollY;
-    boost = Math.min(2.5, boost + d / 600);
-  }, { passive: true });
-
-  window.addEventListener("pointerdown", e => {
-    const n = reduced ? 6 : 14;
-    for (let i = 0; i < n; i++) {
-      spawnOne({
-        kind: pick(theme.pool),
-        x: e.clientX + (Math.random() - .5) * 30,
-        y: e.clientY + (Math.random() - .5) * 30,
-        vx: (Math.random() - .5) * 300,
-        vy: -80 - Math.random() * 200,
-        size: 14 + Math.random() * 18
-      });
-    }
-  });
-
-  let acc = 0, last = performance.now();
-  function loop(now) {
-    const dt = Math.min(.05, (now - last) / 1000); last = now;
-    ctx.clearRect(0, 0, W, H);
-    acc += theme.rate * (1 + boost) * (reduced ? .25 : 1) * dt;
-    while (acc >= 1) { acc -= 1; spawnOne(); }
-    boost *= Math.max(0, 1 - 2 * dt);
-    const t = now / 1000;
-    for (let i = parts.length - 1; i >= 0; i--) {
-      const p = parts[i];
-      if (p.spark) {
-        p.life -= dt;
-        if (p.life <= 0) { parts.splice(i, 1); continue; }
-        p.vy += 500 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
-        ctx.globalAlpha = Math.max(0, p.life);
-        ctx.fillStyle = Math.random() < .5 ? "#ffd27a" : "#ff8a3c";
-        ctx.fillRect(p.x, p.y, p.size, p.size);
-        continue;
-      }
-      p.vy = Math.min(p.vy + 300 * dt, 260 + p.size * 3);
-      p.x += (p.vx + Math.sin(t * p.sway + p.phase) * 26) * dt;
-      p.y += p.vy * dt;
-      p.rot += p.vr * dt;
-      if (p.kind === "tnt" && p.y > H * .86 && !reduced) { explode(p.x, p.y); parts.splice(i, 1); continue; }
-      if (p.y > H + 60 || p.x < -80 || p.x > W + 80) { parts.splice(i, 1); continue; }
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot);
-      ctx.globalAlpha = (p.kind === "diamond" || p.kind === "emerald")
-        ? .72 + .28 * Math.sin(t * 3 + p.phase) : p.alpha;
-      if (p.kind === "code") {
-        ctx.fillStyle = "#6dff9e";
-        ctx.font = "bold " + Math.max(14, p.size * .8) + "px Consolas, monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(p.glyph, 0, 0);
-      } else {
-        ctx.drawImage(IMG[p.kind], -p.size / 2, -p.size / 2, p.size, p.size);
-      }
-      ctx.restore();
-    }
-    for (let i = flashes.length - 1; i >= 0; i--) {
-      const f = flashes[i];
-      f.r += (f.max - f.r) * 8 * dt; f.a -= 2.2 * dt;
-      if (f.a <= 0) { flashes.splice(i, 1); continue; }
-      const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
-      g.addColorStop(0, "rgba(255,240,190," + f.a + ")");
-      g.addColorStop(.4, "rgba(255,160,70," + (f.a * .7) + ")");
-      g.addColorStop(1, "rgba(255,120,40,0)");
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-    requestAnimationFrame(loop);
-  }
-  requestAnimationFrame(loop);
-
-  /* ---------- section observer: reveals, theme switch, bursts ---------- */
-  const slides = Array.from(document.querySelectorAll(".slide"));
-  const countEls = Array.from(document.querySelectorAll(".count"));
-  let counted = false;
-  function resetCounts() {
-    counted = false;
-    countEls.forEach(el => {
-      el.textContent = (el.dataset.prefix || "") + (0).toFixed(+(el.dataset.decimals || 0));
-    });
-  }
-  function startCounts() {
-    if (counted) return;
-    counted = true;
-    countEls.forEach(el => {
-      const target = parseFloat(el.dataset.target);
-      const dec = +(el.dataset.decimals || 0);
-      const pre = el.dataset.prefix || "";
-      const t0 = performance.now(), dur = 1500;
-      const tick = now => {
-        const k = Math.min(1, (now - t0) / dur);
-        const e = 1 - Math.pow(1 - k, 3);
-        el.textContent = pre + (target * e).toFixed(dec);
-        if (k < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    });
-  }
-
-  const io = new IntersectionObserver(entries => {
-    entries.forEach(en => {
-      if (en.isIntersecting) {
-        en.target.classList.add("in-view");
-        theme = THEMES[en.target.dataset.theme] || THEMES.grass;
-        burst(en.target.dataset.theme, reduced ? 4 : 18);
-        if (en.target.dataset.theme === "gold") startCounts();
-        if (en.target.classList.contains("s6") && !reduced) {
-          setTimeout(() => {
-            en.target.classList.add("quake");
-            burst("tnt", 26, { x: W * .5, y: H * .78 });
-            setTimeout(() => en.target.classList.remove("quake"), 500);
-          }, 1900);
-        }
-      } else {
-        en.target.classList.remove("in-view");
-        if (en.target.dataset.theme === "gold") resetCounts();
-      }
-    });
-  }, { threshold: .35 });
-  slides.forEach(s => io.observe(s));
-
-  /* ---------- typing code panel (slide 3) ---------- */
-  const codeEl = document.getElementById("codetype");
-  const CODE = [
-    "public void render() {",
-    "  world.setBlock();",
-    "}",
-    "world.setBlock() {",
-    "  world.create(88, 10, 3);",
-    "}",
-    "",
-    "// survive. mine. build."
-  ].join("\n");
-  let ci = 0, dir = 1;
-  setInterval(() => {
-    if (!slides[2] || !slides[2].classList.contains("in-view")) return;
-    ci += dir;
-    if (ci >= CODE.length + 14) { dir = -1; ci = CODE.length; }
-    if (ci <= 0) { ci = 0; dir = 1; }
-    codeEl.textContent = CODE.slice(0, ci) + (dir > 0 ? "\u2588" : "");
-  }, 42);
-
-  /* ---------- parallax layers ---------- */
-  const plx = Array.from(document.querySelectorAll("[data-depth]"));
-  function parallax() {
+  /* ほんのりパララックス(画像レイヤーがスクロールに合わせて浮遊) */
+  const px = Array.from(document.querySelectorAll("[data-depth]"));
+  function loop() {
     const vh = window.innerHeight;
-    plx.forEach(el => {
-      const sec = el.closest(".slide");
-      if (!sec) return;
-      const r = sec.getBoundingClientRect();
-      if (r.bottom < -100 || r.top > vh + 100) return;
+    px.forEach(el => {
+      const host = el.closest(".slide");
+      const r = host.getBoundingClientRect();
+      if (r.bottom < -80 || r.top > vh + 80) return;
       const off = r.top + r.height / 2 - vh / 2;
       el.style.transform = "translate3d(0," + (off * parseFloat(el.dataset.depth)).toFixed(1) + "px,0)";
     });
-    requestAnimationFrame(parallax);
+    requestAnimationFrame(loop);
   }
-  if (!reduced && plx.length) requestAnimationFrame(parallax);
-
-  /* ---------- slide 5 image fallback ---------- */
-  const s5img = document.querySelector(".s5-bg");
-  if (s5img) {
-    s5img.addEventListener("error", () => {
-      const s5 = document.getElementById("slide5");
-      if (s5) s5.classList.add("noimg");
-    });
-  }
+  if (!reduced && px.length) requestAnimationFrame(loop);
 })();
 </script>
 </body>
